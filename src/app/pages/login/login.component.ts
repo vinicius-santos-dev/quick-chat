@@ -1,30 +1,35 @@
-import { Component, inject, OnDestroy, signal } from '@angular/core';
-import { useAuthStore } from '../../stores/auth.store';
-import { Router, RouterModule } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Subscription, timer } from 'rxjs';
-import { AuthLayoutComponent } from '../../../shared/components';
+import { Component } from '@angular/core';
+import { ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AuthFooterComponent,
+  AuthFormBase,
+  AuthHeaderComponent,
+  AuthLayoutComponent,
+  ErrorAlertComponent,
+  FormInputComponent,
+  LoadingButtonComponent,
+} from '../../../shared';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterModule, AuthLayoutComponent],
+  imports: [
+    ReactiveFormsModule,
+    AuthLayoutComponent,
+    FormInputComponent,
+    LoadingButtonComponent,
+    ErrorAlertComponent,
+    AuthHeaderComponent,
+    AuthFooterComponent
+  ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent implements OnDestroy {
-  private authStore = inject(useAuthStore);
-  private router = inject(Router);
-  private formBuilder = inject(FormBuilder);
-  private errorSub?: Subscription;
-
+export class LoginComponent extends AuthFormBase {
   public loginForm = this.formBuilder.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
-
-  public errorMessage = signal<string | null>(null);
-  public isLoading = signal<boolean>(false);
 
   public async onSubmit(): Promise<void> {
     try {
@@ -33,11 +38,11 @@ export class LoginComponent implements OnDestroy {
       const { email, password } = this.loginForm.value;
 
       if (!email || !password) return;
-
       await this.authStore.login(email, password);
       this.router.navigate(['/chat']);
     } catch (error) {
       console.error('Login error:', error);
+
       const message =
         error instanceof Error
           ? error.message
@@ -47,20 +52,5 @@ export class LoginComponent implements OnDestroy {
     } finally {
       this.isLoading.set(false);
     }
-  }
-
-  private showErrorWithTimeout(message: string): void {
-    // Clear any existing subscription
-    this.errorSub?.unsubscribe();
-
-    this.errorMessage.set(message);
-
-    this.errorSub = timer(5000).subscribe(() => {
-      this.errorMessage.set(null);
-    });
-  }
-
-  public ngOnDestroy(): void {
-    this.errorSub?.unsubscribe();
   }
 }

@@ -1,0 +1,31 @@
+
+  <label class="block text-sm font-medium text-gray-700">
+    {{ label }}
+
+    <div class="mt-1">
+      <input
+        [type]="type"
+        [formControlName]="controlName"
+        [id]="controlName"
+        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
+        [class.border-red-500]="control?.invalid && control?.touched"
+      />
+    </div>
+  </label>
+
+  <div class="h-2">
+    @if (control?.invalid && control?.touched) {
+    <div class="text-sm text-red-600">
+      @if (control?.errors?.['required']) {
+      <span>{{ label }} is required</span>
+      } @if (control?.errors?.['email']) {
+      <span>Please enter a valid email address</span>
+      } @if (control?.errors?.['minlength']) {
+      <span
+        >Must be at least
+        {{ control?.errors?.['minlength'].requiredLength }} characters</span
+      >
+      }
+    </div>
+    }
+  </div>

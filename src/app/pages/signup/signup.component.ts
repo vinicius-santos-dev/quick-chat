@@ -1,31 +1,36 @@
-import { Component, inject, signal } from '@angular/core';
-import { useAuthStore } from '../../stores/auth.store';
-import { Router, RouterModule } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Subscription, timer } from 'rxjs';
-import { AuthLayoutComponent } from '../../../shared/components';
+import { Component } from '@angular/core';
+import { ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AuthFooterComponent,
+  AuthHeaderComponent,
+  AuthLayoutComponent,
+  ErrorAlertComponent,
+  FormInputComponent,
+  LoadingButtonComponent,
+} from '../../../shared/components';
+import { AuthFormBase } from '../../../shared';
 
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterModule, AuthLayoutComponent],
+  imports: [
+    ReactiveFormsModule,
+    AuthLayoutComponent,
+    FormInputComponent,
+    LoadingButtonComponent,
+    ErrorAlertComponent,
+    AuthFooterComponent,
+    AuthHeaderComponent
+  ],
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.scss',
 })
-export class SignupComponent {
-  private authStore = inject(useAuthStore);
-  private router = inject(Router);
-  private formBuilder = inject(FormBuilder);
-  private errorSub?: Subscription;
-
+export class SignupComponent extends AuthFormBase {
   public signupForm = this.formBuilder.group({
     displayName: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
-
-  public errorMessage = signal<string | null>(null);
-  public isLoading = signal<boolean>(false);
 
   public async onSubmit(): Promise<void> {
     try {
@@ -49,20 +54,5 @@ export class SignupComponent {
     } finally {
       this.isLoading.set(false);
     }
-  }
-
-  private showErrorWithTimeout(message: string): void {
-    // Clear any existing subscription
-    this.errorSub?.unsubscribe();
-
-    this.errorMessage.set(message);
-
-    this.errorSub = timer(5000).subscribe(() => {
-      this.errorMessage.set(null);
-    });
-  }
-
-  public ngOnDestroy(): void {
-    this.errorSub?.unsubscribe();
   }
 }
