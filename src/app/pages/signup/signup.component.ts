@@ -1,39 +1,68 @@
 import { Component, inject, signal } from '@angular/core';
 import { useAuthStore } from '../../stores/auth.store';
 import { Router, RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Subscription, timer } from 'rxjs';
+import { AuthLayoutComponent } from '../../../shared/components';
 
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [FormsModule, RouterModule],
+  imports: [ReactiveFormsModule, RouterModule, AuthLayoutComponent],
   templateUrl: './signup.component.html',
-  styleUrl: './signup.component.scss'
+  styleUrl: './signup.component.scss',
 })
 export class SignupComponent {
-  email = '';
-  password = '';
-  displayName = '';
-  errorMessage = signal<string | null>(null);
   private authStore = inject(useAuthStore);
   private router = inject(Router);
+  private formBuilder = inject(FormBuilder);
+  private errorSub?: Subscription;
 
-  async onSubmit() {
+  public signupForm = this.formBuilder.group({
+    displayName: ['', [Validators.required]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+  });
+
+  public errorMessage = signal<string | null>(null);
+  public isLoading = signal<boolean>(false);
+
+  public async onSubmit(): Promise<void> {
     try {
-      console.log(this.displayName);
-      await this.authStore.signUp(this.email, this.password, this.displayName);
+      this.isLoading.set(true);
+
+      const { displayName, email, password } = this.signupForm.value;
+
+      if (!displayName || !email || !password) return;
+
+      await this.authStore.signUp(email, password, displayName);
       this.router.navigate(['/chat']);
       console.log('Signup successful!', this.authStore.currentUser());
-      
     } catch (error) {
       console.error('Signup error:', error);
-      if (error instanceof Error) {
-        this.errorMessage.set(error.message);
-      } else {
-        this.errorMessage.set(
-          'An unexpected error occurred. Please try again.'
-        );
-      }
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'An unexpected error occurred. Please try again.';
+
+      this.showErrorWithTimeout(message);
+    } finally {
+      this.isLoading.set(false);
     }
+  }
+
+  private showErrorWithTimeout(message: string): void {
+    // Clear any existing subscription
+    this.errorSub?.unsubscribe();
+
+    this.errorMessage.set(message);
+
+    this.errorSub = timer(5000).subscribe(() => {
+      this.errorMessage.set(null);
+    });
+  }
+
+  public ngOnDestroy(): void {
+    this.errorSub?.unsubscribe();
   }
 }

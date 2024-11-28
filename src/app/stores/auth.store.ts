@@ -51,9 +51,9 @@ export const useAuthStore = createInjectable(() => {
         email: user.email!,
         displayName: user.displayName || undefined,
         bio: user.bio,
-        photoURL: user.photoURL
+        photoURL: user.photoURL,
       };
-  
+
       await setDoc(doc(firestore, `users/${user.uid}`), newUser);
       console.log('User document created successfully');
     } catch (error) {
@@ -85,7 +85,6 @@ export const useAuthStore = createInjectable(() => {
 
       const appUser = await getUserFromFirestore(userCredential.user.uid);
       currentUser.set(appUser);
-
     } catch (error: any) {
       console.error('Signup error:', error);
       switch (error.code) {
@@ -122,6 +121,7 @@ export const useAuthStore = createInjectable(() => {
       switch (error.code) {
         case 'auth/user-not-found':
         case 'auth/wrong-password':
+        case 'auth/invalid-credential':
           throw new Error('Invalid email or password. Please try again.');
         case 'auth/invalid-email':
           throw new Error('The email address is not valid.');
