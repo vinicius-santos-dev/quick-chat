@@ -1,0 +1,19 @@
+<div class="min-h-screen flex flex-col md:flex-row">
+  <!-- Logo section -->
+  <div class="relative flex flex-col items-center justify-center w-full flex-1 md:w-1/2 bg-white p-8">
+    <div
+      class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-50"
+      style="background-image: url('assets/background.jpg'); z-index: 0">
+    </div>
+    <img
+      src="assets/quick-chat-logo.png"
+      alt="QuickChat"
+      class="z-10 mix-blend-multiply"
+    />
+  </div>
+
+  <!-- Content section -->
+  <div class="flex flex-col items-center justify-around md:justify-center w-full flex-1 md:w-1/2 p-4 md:p-8 -mt-8 md:mt-0 rounded-t-3xl md:rounded-none overflow-hidden bg-white z-20">
+    <ng-content></ng-content>
+  </div>
+</div>
