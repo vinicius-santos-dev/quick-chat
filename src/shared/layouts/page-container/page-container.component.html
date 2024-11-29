@@ -1,7 +1,11 @@
 <div
   class="flex items-center justify-center min-h-screen bg-gradient-to-b from-teal-500 to-teal-800"
 >
-  <div class="w-[{{width}}vw] h-[{{height}}vh] bg-white rounded-2xl shadow-lg flex">
+  <div
+    class="bg-white rounded-2xl shadow-lg flex"
+    [style.width.vw]="width"
+    [style.height.vh]="height"
+  >
     <ng-content></ng-content>
   </div>
 </div>

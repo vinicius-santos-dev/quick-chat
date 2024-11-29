@@ -7,7 +7,7 @@ import {
   signOut,
   User,
 } from '@angular/fire/auth';
-import { Firestore, doc, setDoc, getDoc } from '@angular/fire/firestore';
+import { Firestore, doc, setDoc, getDoc, updateDoc } from '@angular/fire/firestore';
 
 export interface AppUser {
   uid: string;
@@ -22,24 +22,43 @@ export const useAuthStore = createInjectable(() => {
   const auth = inject(Auth);
   const firestore = inject(Firestore);
   const currentUser = signal<AppUser | null>(null);
+  const isLoading = signal<boolean>(true);
+  const isInitialized = signal<boolean>(false);
 
   // Set up Firebase auth state listener to keep user state in sync
   // This will run whenever the authentication state changes (login/logout)
   auth.onAuthStateChanged(async (user) => {
-    if (user) {
-      const appUser = await getUserFromFirestore(user.uid);
-      currentUser.set(appUser);
-    } else {
-      currentUser.set(null);
+    console.log('Firebase Auth State Changed:', user);
+    
+    isLoading.set(true);
+    try {
+      if (user) {
+        console.log('Getting user from Firestore:', user.uid);
+        const appUser = await getUserFromFirestore(user.uid);
+        console.log('Firestore user data:', appUser);
+        currentUser.set(appUser);
+      } else {
+        console.log('No user - setting currentUser to null');
+        currentUser.set(null);
+      }
+    } finally {
+      isLoading.set(false);
+      isInitialized.set(true);
     }
   });
 
   async function getUserFromFirestore(uid: string): Promise<AppUser | null> {
-    const userDoc = await getDoc(doc(firestore, `users/${uid}`));
-    if (userDoc.exists()) {
-      return userDoc.data() as AppUser;
+    try {
+      const userDoc = await getDoc(doc(firestore, `users/${uid}`));
+      console.log('Firestore doc exists:', userDoc.exists());
+      if (userDoc.exists()) {
+        return userDoc.data() as AppUser;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching user from Firestore:', error);
+      return null;
     }
-    return null;
   }
 
   async function createUserInFirestore(
@@ -68,7 +87,7 @@ export const useAuthStore = createInjectable(() => {
     displayName: string,
     bio?: string,
     photoURL?: string
-  ) {
+  ): Promise<void> {
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -106,7 +125,7 @@ export const useAuthStore = createInjectable(() => {
     }
   }
 
-  async function login(email: string, password: string) {
+  async function login(email: string, password: string): Promise<void> {
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
@@ -135,7 +154,7 @@ export const useAuthStore = createInjectable(() => {
     }
   }
 
-  async function logout() {
+  async function logout(): Promise<void> {
     try {
       await signOut(auth);
       currentUser.set(null);
@@ -145,10 +164,24 @@ export const useAuthStore = createInjectable(() => {
     }
   }
 
+  async function updateProfile(uid: string, data: Partial<AppUser>): Promise<void> {
+    try {
+      await updateDoc(doc(firestore, `users/${uid}`), data);
+      const updatedUser = await getUserFromFirestore(uid);
+      currentUser.set(updatedUser);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw new Error('Failed to update profile');
+  }
+}
+
   return {
     currentUser,
     signUp,
     login,
     logout,
+    updateProfile,
+    isLoading,
+    isInitialized,
   };
 });
