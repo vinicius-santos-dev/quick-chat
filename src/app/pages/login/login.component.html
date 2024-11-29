@@ -3,9 +3,6 @@
 
   <div class="w-full sm:max-w-lg">
     <div class="bg-white sm:py-8 sm:rounded-lg sm:px-10">
-      @if (errorMessage()) {
-      <app-error-alert [message]="errorMessage()"></app-error-alert>
-      }
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
         <div>

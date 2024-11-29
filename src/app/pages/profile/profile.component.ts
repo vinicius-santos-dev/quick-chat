@@ -2,23 +2,32 @@ import {
   Component,
   computed,
   effect,
-  inject,
-  Injector,
-  OnInit,
-  runInInjectionContext,
 } from '@angular/core';
-import { AuthFormBase, FormInputComponent, LoadingButtonComponent, PageContainerComponent } from '../../../shared';
-import { AppUser, useAuthStore } from '../../stores/auth.store';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AuthFormBase,
+  FormInputComponent,
+  LoadingButtonComponent,
+  PageContainerComponent,
+} from '../../../shared';
+import { AppUser } from '../../stores/auth.store';
+import { ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [PageContainerComponent, ReactiveFormsModule, FormInputComponent, LoadingButtonComponent],
+  imports: [
+    PageContainerComponent,
+    ReactiveFormsModule,
+    FormInputComponent,
+    LoadingButtonComponent,
+    RouterModule,
+  ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })
 export class ProfileComponent extends AuthFormBase {
+
   protected readonly user = computed(() => this.authStore.currentUser());
   public profileForm = this.formBuilder.group({
     displayName: ['', Validators.required],
@@ -50,11 +59,20 @@ export class ProfileComponent extends AuthFormBase {
       await this.authStore.updateProfile(this.currentUser.uid, {
         displayName: this.profileForm.value.displayName!,
         bio: this.profileForm.value.bio!,
-      })
+      });
+
+      this.toastService.success('Profile updated successfully');
 
       this.router.navigate(['/chat']);
     } catch (error) {
       console.error('Error updating profile:', error);
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'An unexpected error occurred. Please try again.';
+
+      this.toastService.error(message);
     } finally {
       this.isLoading.set(false);
     }

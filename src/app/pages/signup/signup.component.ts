@@ -4,7 +4,6 @@ import {
   AuthFooterComponent,
   AuthHeaderComponent,
   AuthLayoutComponent,
-  ErrorAlertComponent,
   FormInputComponent,
   LoadingButtonComponent,
 } from '../../../shared/components';
@@ -18,7 +17,6 @@ import { AuthFormBase } from '../../../shared';
     AuthLayoutComponent,
     FormInputComponent,
     LoadingButtonComponent,
-    ErrorAlertComponent,
     AuthFooterComponent,
     AuthHeaderComponent
   ],
@@ -26,6 +24,7 @@ import { AuthFormBase } from '../../../shared';
   styleUrl: './signup.component.scss',
 })
 export class SignupComponent extends AuthFormBase {
+
   public signupForm = this.formBuilder.group({
     displayName: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
@@ -50,7 +49,7 @@ export class SignupComponent extends AuthFormBase {
           ? error.message
           : 'An unexpected error occurred. Please try again.';
 
-      this.showErrorWithTimeout(message);
+      this.toastService.error(message);
     } finally {
       this.isLoading.set(false);
     }

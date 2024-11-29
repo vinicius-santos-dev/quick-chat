@@ -1,26 +1,35 @@
-<app-page-container height="60" width="30">
-  @if (user()) {
-  <div class="mx-auto w-[90%] p-4 flex flex-col items-center justify-center">
-    <!-- IMPLEMENT PHOTO UPLOAD -->
-    <img
-      class="rounded-full max-h-60 mb-3"
-      [src]="user()?.photoURL"
-      alt="Profile photo"
-    />
+<app-page-container height="60" width="25">
+  <div class="mx-auto w-[90%] py-4 flex flex-col items-center">
+    <button class="font-bold self-start hover:text-teal-600 transition-colors">
+      <a class="flex items-center" routerLink="/chat">
+        <i class="uil uil-angle-left-b text-2xl"></i>
+        Back
+      </a>
+    </button>
 
-    <form
-      class="flex flex-col gap-3 w-[100%]"
-      [formGroup]="profileForm"
-      (ngSubmit)="onSubmit()"
-    >
-      <app-form-input label="Name" controlName="displayName"></app-form-input>
-      <app-form-input label="Bio" controlName="bio"></app-form-input>
-      <app-loading-button
-        [loading]="isLoading()"
-        [disabled]="profileForm.invalid || isLoading()"
-        >Update</app-loading-button
+    @if (user()) {
+    <div class="mx-auto w-[100%] py-4 flex flex-col items-center justify-center">
+      <!-- IMPLEMENT PHOTO UPLOAD -->
+      <img
+        class="rounded-full max-h-60 mb-3"
+        [src]="user()?.photoURL"
+        alt="Profile photo"
+      />
+  
+      <form
+        class="flex flex-col gap-3 w-[100%]"
+        [formGroup]="profileForm"
+        (ngSubmit)="onSubmit()"
       >
-    </form>
+        <app-form-input label="Name" controlName="displayName"></app-form-input>
+        <app-form-input label="Bio" controlName="bio"></app-form-input>
+        <app-loading-button
+          [loading]="isLoading()"
+          [disabled]="profileForm.invalid || isLoading()"
+          >Update</app-loading-button
+        >
+      </form>
+    </div>
+    }
   </div>
-  }
 </app-page-container>
