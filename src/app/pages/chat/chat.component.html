@@ -13,19 +13,13 @@
     </div>
 
     <form [formGroup]="searchForm" class="my-3 w-full px-3 relative">
-      <p-iconField iconPosition="left" styleClass="w-full block absolute left-3">
-        <p-inputIcon styleClass="uil uil-search flex items-center justify-center h-full" />
-        <input 
-          class="w-full pl-10 px-3 py-2 border border-gray-300 rounded-full shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm bg-slate-50 hover:bg-slate-100 transition-colors"
-          type="text" 
-          formControlName="search" 
-          pInputText 
-          placeholder="Search by name"
-        />
-      </p-iconField>
+      <app-search-input
+        controlName="search"
+        placeholder="Search by name"
+      />
     </form>
 
-    <app-chat-list />
+    <app-chat-list [chats]="filteredChats()" />
   </aside>
   <main class="w-3/4"></main>
 </app-page-container>

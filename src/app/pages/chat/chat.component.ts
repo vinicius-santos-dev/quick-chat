@@ -1,14 +1,13 @@
-import { Component, computed, effect, inject } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { useAuthStore } from '../../stores/auth.store';
 import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { MenuModule } from 'primeng/menu';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
-import { InputTextModule } from 'primeng/inputtext';
-import { PageContainerComponent } from '../../../shared';
+import { PageContainerComponent, SearchInputComponent } from '../../../shared';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ChatListComponent } from './components/chat-list/chat-list.component';
+import { ChatItem } from './interfaces/chat-item.interface';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'app-chat',
@@ -17,11 +16,9 @@ import { ChatListComponent } from './components/chat-list/chat-list.component';
     MenuModule,
     ReactiveFormsModule,
     RouterModule,
-    IconFieldModule,
-    InputIconModule,
-    InputTextModule,
     PageContainerComponent,
-    ChatListComponent
+    ChatListComponent,
+    SearchInputComponent
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
@@ -34,6 +31,39 @@ export class ChatComponent {
   // TODO: Maybe this should be in app.component.ts (pages are flickering)
   protected readonly user = computed(() => this.authStore.currentUser());
   protected readonly isLoading = computed(() => this.authStore.isLoading());
+  protected readonly chats = signal<ChatItem[]>([
+    {
+      id: '1',
+      displayName: 'John Doe',
+      photoURL: 'assets/default-avatar.png',
+      lastMessage: 'Hey, how are you?',
+      timestamp: new Date('2024-12-02T14:30:00'),
+    },
+    {
+      id: '2',
+      displayName: 'Jane Smith',
+      photoURL: 'assets/default-avatar.png',
+      lastMessage: 'Can we meet tomorrow?',
+      timestamp: new Date('2024-12-01T13:45:00'),
+    },
+    {
+      id: '3',
+      displayName: 'Lily Johnson',
+      photoURL: 'assets/default-avatar.png',
+      lastMessage: 'Thanks for your help!',
+      timestamp: new Date('2024-11-29T10:15:00'),
+    },
+  ]);
+  protected readonly filteredChats = computed(() => {
+    const term = this.searchTerm().toLowerCase();
+
+    if (!term) return this.chats();
+
+    return this.chats().filter((chat) =>
+      chat.displayName.toLowerCase().includes(term)
+    );
+  });
+  protected readonly searchTerm = signal<string>('');
 
   public searchForm = this.formBuilder.group({
     search: [''],
@@ -45,6 +75,13 @@ export class ChatComponent {
         this.router.navigate(['/login']);
       }
     });
+
+    this.searchForm
+      .get('search')
+      ?.valueChanges.pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((value) => {
+        this.searchTerm.set(value || '');
+      });
   }
 
   public menuItems: MenuItem[] = [
