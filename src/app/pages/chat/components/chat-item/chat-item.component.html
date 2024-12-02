@@ -1,0 +1,16 @@
+<div class="flex gap-3 p-3 hover:bg-teal-50 cursor-pointer transition-colors">
+  <img 
+    [src]="chat.photoURL" 
+    [alt]="chat.displayName" 
+    class="w-12 h-12 rounded-full object-cover"
+  />
+
+  <div class="flex-1 min-w-0">
+    <h3 class="font-bold text-gray-900 truncate">{{ chat.displayName }}</h3>
+    <p class="text-sm text-gray-500 truncate">{{ chat.lastMessage }}</p>
+  </div>
+
+  <div class="self-start pt-0.5">
+    <p class="text-sm text-gray-500">{{ chat.timestamp | date:'shortTime' }}</p>
+  </div>
+</div>
