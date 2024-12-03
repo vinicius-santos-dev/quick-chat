@@ -95,9 +95,13 @@ export class ChatComponent implements OnInit {
     },
   ];
 
-  public onLogout(): void {
-    this.authStore.logout();
-    this.router.navigate(['/login']);
+  public async onLogout(): Promise<void> {
+    try {
+      await this.authStore.logout();
+      this.router.navigate(['/login']);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   }
 
   public onEditProfile(): void {
