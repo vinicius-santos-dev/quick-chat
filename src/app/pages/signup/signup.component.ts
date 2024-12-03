@@ -33,7 +33,7 @@ export class SignupComponent extends AuthFormBase {
 
   public async onSubmit(): Promise<void> {
     try {
-      this.isLoading.set(true);
+      this.formSubmitting.set(true);
 
       const { displayName, email, password } = this.signupForm.value;
 
@@ -51,7 +51,7 @@ export class SignupComponent extends AuthFormBase {
 
       this.toastService.error(message);
     } finally {
-      this.isLoading.set(false);
+      this.formSubmitting.set(false);
     }
   }
 }

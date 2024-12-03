@@ -22,7 +22,7 @@ export const useAuthStore = createInjectable(() => {
   const auth = inject(Auth);
   const firestore = inject(Firestore);
   const currentUser = signal<AppUser | null>(null);
-  const isLoading = signal<boolean>(true);
+  const authStateLoading = signal<boolean>(true);
   const isInitialized = signal<boolean>(false);
 
   // Set up Firebase auth state listener to keep user state in sync
@@ -30,7 +30,7 @@ export const useAuthStore = createInjectable(() => {
   auth.onAuthStateChanged(async (user) => {
     console.log('Firebase Auth State Changed:', user);
     
-    isLoading.set(true);
+    authStateLoading.set(true);
     try {
       if (user) {
         console.log('Getting user from Firestore:', user.uid);
@@ -42,7 +42,7 @@ export const useAuthStore = createInjectable(() => {
         currentUser.set(null);
       }
     } finally {
-      isLoading.set(false);
+      authStateLoading.set(false);
       isInitialized.set(true);
     }
   });
@@ -181,7 +181,7 @@ export const useAuthStore = createInjectable(() => {
     login,
     logout,
     updateProfile,
-    isLoading,
+    authStateLoading,
     isInitialized,
   };
 });

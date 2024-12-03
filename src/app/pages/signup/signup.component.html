@@ -30,8 +30,8 @@
 
         <div>
           <app-loading-button
-            [loading]="isLoading()"
-            [disabled]="signupForm.invalid || isLoading()"
+            [loading]="formSubmitting()"
+            [disabled]="signupForm.invalid || formSubmitting()"
           >
             Sign up
           </app-loading-button>

@@ -32,7 +32,7 @@ export class LoginComponent extends AuthFormBase {
 
   public async onSubmit(): Promise<void> {
     try {
-      this.isLoading.set(true);
+      this.formSubmitting.set(true);
 
       const { email, password } = this.loginForm.value;
 
@@ -49,7 +49,7 @@ export class LoginComponent extends AuthFormBase {
 
       this.toastService.error(message);
     } finally {
-      this.isLoading.set(false);
+      this.formSubmitting.set(false);
     }
   }
 }

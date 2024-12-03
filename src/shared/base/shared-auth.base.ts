@@ -12,5 +12,5 @@ export abstract class AuthFormBase {
   protected formBuilder = inject(FormBuilder);
   protected toastService = inject(ToastService);
 
-  public isLoading = signal<boolean>(false);
+  public formSubmitting = signal<boolean>(false);
 }

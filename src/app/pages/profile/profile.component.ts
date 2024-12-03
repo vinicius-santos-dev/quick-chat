@@ -33,8 +33,9 @@ export class ProfileComponent extends AuthFormBase {
     displayName: ['', Validators.required],
     bio: [''],
   });
+
+  //TODO: Look if this is needed
   public currentUser: AppUser | null = null;
-  // protected readonly isLoading = computed(() => this.authStore.isLoading());
 
   constructor() {
     super();
@@ -54,7 +55,7 @@ export class ProfileComponent extends AuthFormBase {
     if (this.profileForm.invalid || !this.currentUser) return;
 
     try {
-      this.isLoading.set(true);
+      this.formSubmitting.set(true);
 
       await this.authStore.updateProfile(this.currentUser.uid, {
         displayName: this.profileForm.value.displayName!,
@@ -74,7 +75,7 @@ export class ProfileComponent extends AuthFormBase {
 
       this.toastService.error(message);
     } finally {
-      this.isLoading.set(false);
+      this.formSubmitting.set(false);
     }
   }
 

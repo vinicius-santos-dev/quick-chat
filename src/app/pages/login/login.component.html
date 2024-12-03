@@ -23,8 +23,8 @@
 
         <div>
           <app-loading-button
-            [loading]="isLoading()"
-            [disabled]="loginForm.invalid || isLoading()"
+            [loading]="formSubmitting()"
+            [disabled]="loginForm.invalid || formSubmitting()"
           >
             Sign in
           </app-loading-button>

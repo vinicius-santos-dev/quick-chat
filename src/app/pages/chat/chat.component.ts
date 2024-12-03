@@ -35,9 +35,6 @@ export class ChatComponent implements OnInit {
   private router = inject(Router);
   private formBuilder = inject(FormBuilder);
 
-  // TODO: Maybe this should be in app.component.ts (pages are flickering)
-  protected readonly user = computed(() => this.authStore.currentUser());
-  protected readonly isLoading = computed(() => this.authStore.isLoading());
   protected readonly chats = signal<ChatItem[]>([
     {
       id: '1',
@@ -75,14 +72,6 @@ export class ChatComponent implements OnInit {
   public searchForm = this.formBuilder.group({
     search: [''],
   });
-
-  constructor() {
-    effect(() => {
-      if (!this.isLoading() && !this.user()) {
-        this.router.navigate(['/login']);
-      }
-    });
-  }
 
   public ngOnInit(): void {
     this.searchForm

@@ -25,8 +25,8 @@
         <app-form-input label="Bio" controlName="bio"></app-form-input>
         <app-loading-button
           class="md:static fixed bottom-3 inset-x-3 md:w-auto"
-          [loading]="isLoading()"
-          [disabled]="profileForm.invalid || isLoading()"
+          [loading]="formSubmitting()"
+          [disabled]="profileForm.invalid || formSubmitting()"
           >Update</app-loading-button
         >
       </form>
