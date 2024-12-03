@@ -1,5 +1,5 @@
-<app-page-container height="60" width="25">
-  <div class="mx-auto w-[90%] py-4 flex flex-col items-center">
+<app-page-container pageType="profile">
+  <div class="md:w-[90%] w-full md:px-0 px-3 mx-auto py-4 flex flex-col items-center">
     <button class="font-bold self-start hover:text-teal-600 transition-colors">
       <a class="flex items-center" routerLink="/chat">
         <i class="uil uil-angle-left-b text-2xl"></i>
@@ -8,22 +8,23 @@
     </button>
 
     @if (user()) {
-    <div class="mx-auto w-[100%] py-4 flex flex-col items-center justify-center">
+    <div class="mx-auto w-full py-4 flex flex-col items-center justify-center">
       <!-- IMPLEMENT PHOTO UPLOAD -->
       <img
-        class="rounded-full max-h-60 mb-3"
+        class="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover mb-6"
         [src]="user()?.photoURL"
         alt="Profile photo"
       />
   
       <form
-        class="flex flex-col gap-3 w-[100%]"
+        class="w-full max-w-md flex flex-col gap-3"
         [formGroup]="profileForm"
         (ngSubmit)="onSubmit()"
       >
         <app-form-input label="Name" controlName="displayName"></app-form-input>
         <app-form-input label="Bio" controlName="bio"></app-form-input>
         <app-loading-button
+          class="md:static fixed bottom-3 inset-x-3 md:w-auto"
           [loading]="isLoading()"
           [disabled]="profileForm.invalid || isLoading()"
           >Update</app-loading-button

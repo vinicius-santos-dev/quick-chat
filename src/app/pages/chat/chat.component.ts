@@ -1,4 +1,11 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { useAuthStore } from '../../stores/auth.store';
 import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
@@ -18,12 +25,12 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
     RouterModule,
     PageContainerComponent,
     ChatListComponent,
-    SearchInputComponent
+    SearchInputComponent,
   ],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.scss',
 })
-export class ChatComponent {
+export class ChatComponent implements OnInit {
   private authStore = inject(useAuthStore);
   private router = inject(Router);
   private formBuilder = inject(FormBuilder);
@@ -75,7 +82,9 @@ export class ChatComponent {
         this.router.navigate(['/login']);
       }
     });
+  }
 
+  public ngOnInit(): void {
     this.searchForm
       .get('search')
       ?.valueChanges.pipe(debounceTime(300), distinctUntilChanged())
