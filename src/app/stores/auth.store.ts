@@ -8,6 +8,7 @@ import {
   User,
 } from '@angular/fire/auth';
 import { Firestore, doc, setDoc, getDoc, updateDoc } from '@angular/fire/firestore';
+import { CookieService } from 'ngx-cookie-service';
 
 export interface AppUser {
   uid: string;
@@ -21,24 +22,33 @@ export interface AppUser {
 export const useAuthStore = createInjectable(() => {
   const auth = inject(Auth);
   const firestore = inject(Firestore);
-  const currentUser = signal<AppUser | null>(null);
-  const authStateLoading = signal<boolean>(true);
-  const isInitialized = signal<boolean>(false);
+  const cookieService = inject(CookieService);
+
+  const storedUser = cookieService.get('auth_user');
+  const currentUser = signal<AppUser | null>(storedUser ? JSON.parse(storedUser) : null);
+  const authStateLoading = signal<boolean>(false);
+  const isInitialized = signal<boolean>(true);
 
   // Set up Firebase auth state listener to keep user state in sync
   // This will run whenever the authentication state changes (login/logout)
   auth.onAuthStateChanged(async (user) => {
     console.log('Firebase Auth State Changed:', user);
     
-    authStateLoading.set(true);
+    // authStateLoading.set(true);
     try {
       if (user) {
-        console.log('Getting user from Firestore:', user.uid);
-        const appUser = await getUserFromFirestore(user.uid);
-        console.log('Firestore user data:', appUser);
-        currentUser.set(appUser);
+        const cookieUser = storedUser ? JSON.parse(storedUser) : null;
+        if (!cookieUser || cookieUser.uid !== user.uid) {
+          authStateLoading.set(true);
+          console.log('Getting user from Firestore:', user.uid);
+          const appUser = await getUserFromFirestore(user.uid);
+          console.log('Firestore user data:', appUser);
+          cookieService.set('auth_user', JSON.stringify(appUser), 7, '/', '', true, 'Strict');
+          currentUser.set(appUser);
+        }
       } else {
         console.log('No user - setting currentUser to null');
+        cookieService.delete('auth_user');
         currentUser.set(null);
       }
     } finally {
@@ -157,6 +167,7 @@ export const useAuthStore = createInjectable(() => {
   async function logout(): Promise<void> {
     try {
       await signOut(auth);
+      cookieService.delete('auth_user');
       currentUser.set(null);
     } catch (error) {
       console.error('Logout error:', error);
