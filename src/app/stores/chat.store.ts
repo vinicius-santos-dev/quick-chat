@@ -68,7 +68,11 @@ export const useChatStore = createInjectable(() => {
 
   function listenToChats(userId: string) {
     const chatsRef = collection(firestore, 'chats');
-    const q = query(chatsRef, where('participants', 'array-contains', userId));
+    const q = query(
+      chatsRef,
+      where('participants', 'array-contains', userId),
+      orderBy('lastMessageTimestamp', 'desc')
+    );
     return onSnapshot(q, async (snapshot) => {
       const updatedChats = await Promise.all(
         snapshot.docs.map(async (doc) => {
@@ -128,21 +132,29 @@ export const useChatStore = createInjectable(() => {
 
     const participantUser = querySnapshot.docs[0].data() as AppUser;
 
-    // Check if a chat already exists between these users
-    const existingChatQuery = query(
-      collection(firestore, 'chats'),
-      where('participants', 'array-contains', currentUser.uid),
-      where('participants', 'array-contains', participantUser.uid)
-    );
-    const existingChatSnapshot = await getDocs(existingChatQuery);
-
-    if (!existingChatSnapshot.empty) {
-      // Chat already exists, return its ID
-      return existingChatSnapshot.docs[0].id;
+    // Don't allow chat with self
+    if (currentUser.uid === participantUser.uid) {
+      throw new Error('Cannot create chat with yourself');
     }
 
-    // Create a new chat document
+    // Get all chats for current user
     const chatsRef = collection(firestore, 'chats');
+    const userChatsQuery = query(
+      chatsRef,
+      where('participants', 'array-contains', currentUser.uid)
+    );
+
+    const userChatsSnapshot = await getDocs(userChatsQuery);
+
+    // Check if a chat already exists between these users
+    const existingChat = userChatsSnapshot.docs.find((doc) => {
+      const chatData = doc.data() as Chat;
+      return chatData.participants.includes(participantUser.uid);
+    });
+
+    if (existingChat) return existingChat.id;
+
+    // Create a new chat document
     const newChat = await addDoc(chatsRef, {
       participants: [currentUser.uid, participantUser.uid],
       lastMessage: '',
