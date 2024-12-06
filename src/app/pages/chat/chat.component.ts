@@ -12,11 +12,11 @@ import { useAuthStore } from '../../stores/auth.store';
 import { Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { MenuModule } from 'primeng/menu';
-import { PageContainerComponent, SearchInputComponent } from '../../../shared';
+import { BreakpointsService, PageContainerComponent, SearchInputComponent } from '../../../shared';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ChatListComponent } from './components/chat-list/chat-list.component';
 import { ChatItem } from './interfaces/chat-item.interface';
-import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter } from 'rxjs';
 import { LoadingButtonComponent } from '../../../shared/components/loading-button/loading-button.component';
 import { NewChatModalComponent } from './modals/new-chat-modal/new-chat-modal.component';
 import { useChatStore } from '../../stores/chat.store';
@@ -43,34 +43,11 @@ export class ChatComponent implements OnInit {
   private router = inject(Router);
   private formBuilder = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
-  private unsubscribe: (() => void) | null = null;
+  private breakpointsService = inject(BreakpointsService);
 
   protected readonly currentUser = computed(() => this.authStore.currentUser());
 
-  // protected readonly chats = signal<ChatItem[]>([
-  //   // {
-  //   //   id: '1',
-  //   //   displayName: 'John Doe',
-  //   //   photoURL: 'assets/default-avatar.png',
-  //   //   lastMessage: 'Hey, how are you?',
-  //   //   timestamp: new Date('2024-12-02T14:30:00'),
-  //   // },
-  //   // {
-  //   //   id: '2',
-  //   //   displayName: 'Jane Smith',
-  //   //   photoURL: 'assets/default-avatar.png',
-  //   //   lastMessage: 'Can we meet tomorrow?',
-  //   //   timestamp: new Date('2024-12-01T13:45:00'),
-  //   // },
-  //   // {
-  //   //   id: '3',
-  //   //   displayName: 'Lily Johnson',
-  //   //   photoURL: 'assets/default-avatar.png',
-  //   //   lastMessage: 'Thanks for your help!',
-  //   //   timestamp: new Date('2024-11-29T10:15:00'),
-  //   // },
-  // ]);
-
+  //TODO: change participantNames
   protected readonly chats = computed<ChatItem[]>(() => {
     return this.chatStore.chats().map((chat) => ({
       id: chat.id,
@@ -93,7 +70,12 @@ export class ChatComponent implements OnInit {
       chat.displayName.toLowerCase().includes(term)
     );
   });
+
   protected readonly searchTerm = signal<string>('');
+
+  protected readonly isChatSelected = signal<boolean>(false);
+
+  protected readonly isMobile = this.breakpointsService.isMobile;
 
   public searchForm = this.formBuilder.group({
     search: [''],
@@ -139,5 +121,10 @@ export class ChatComponent implements OnInit {
 
   public onEditProfile(): void {
     this.router.navigate(['/profile']);
+  }
+
+  public onChatSelected(chatId: string): void {
+    this.router.navigate(['/chat', chatId]);
+    this.isChatSelected.set(true);
   }
 }

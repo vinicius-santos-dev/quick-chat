@@ -1,5 +1,5 @@
 <div class="flex flex-col">
   @for (chat of chats; track chat.id) {
-    <app-chat-item [chat]="chat" />
+    <app-chat-item [chat]="chat" (click)="onChatSelected(chat.id)" />
   }
 </div>

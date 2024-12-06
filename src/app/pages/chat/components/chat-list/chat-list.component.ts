@@ -1,4 +1,4 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ChatItemComponent } from '../chat-item/chat-item.component';
 import { ChatItem } from '../../interfaces/chat-item.interface';
 
@@ -10,5 +10,10 @@ import { ChatItem } from '../../interfaces/chat-item.interface';
   styleUrl: './chat-list.component.scss'
 })
 export class ChatListComponent {
-  @Input() chats: ChatItem[] = [];
+  @Input() public chats: ChatItem[] = [];
+  @Output() public chatSelected = new EventEmitter<string>();
+
+  public onChatSelected(chatId: string): void {
+    this.chatSelected.emit(chatId);
+  }
 }

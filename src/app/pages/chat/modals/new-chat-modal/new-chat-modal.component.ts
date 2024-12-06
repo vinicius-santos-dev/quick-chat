@@ -41,7 +41,7 @@ export class NewChatModalComponent {
       const email = this.chatForm.value.email!;
       const chatId = await this.chatStore.createNewChat(email);
       this.visible.set(false);
-      // this.router.navigate(['/chat', chatId]);
+      this.router.navigate(['/chat', chatId]);
       this.toastService.success(
         `Chat created successfully! Chat ID: ${chatId}`
       );

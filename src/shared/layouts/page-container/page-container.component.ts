@@ -1,12 +1,10 @@
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   Component,
   inject,
   Input,
-  OnDestroy,
-  OnInit,
-  PLATFORM_ID,
 } from '@angular/core';
+import { BreakpointsService } from '../../services';
 
 export interface ContainerSize {
   mobile: { width: string; height: string };
@@ -31,41 +29,19 @@ export const CONTAINER_SIZES: Record<string, ContainerSize> = {
   templateUrl: './page-container.component.html',
   styleUrl: './page-container.component.scss',
 })
-export class PageContainerComponent implements OnInit, OnDestroy {
+export class PageContainerComponent  {
   @Input({ required: true }) public pageType!: 'profile' | 'chat';
 
-  private platformId = inject(PLATFORM_ID);
-  private isMobile = false;
-
-  private checkIsMobile(): boolean {
-    return isPlatformBrowser(this.platformId) ? window.innerWidth < 768 : false;
-  }
-
-  public ngOnInit(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      this.isMobile = this.checkIsMobile();
-
-      window.addEventListener('resize', () => {
-        this.isMobile = this.checkIsMobile();
-      });
-    }
-  }
+  private breakpointsService = inject(BreakpointsService);
+  protected readonly isMobile = this.breakpointsService.isMobile;
 
   public getContainerSize(): { width: string; height: string } {
     const { mobile, desktop } = CONTAINER_SIZES[this.pageType];
-    const size = this.isMobile ? mobile : desktop;
+    const size = this.isMobile() ? mobile : desktop;
 
     return {
       width: `${size.width}vw`,
       height: `${size.height}vh`,
     };
-  }
-
-  public ngOnDestroy(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      window.removeEventListener('resize', () => {
-        this.isMobile = window.innerWidth < 768;
-      });
-    }
   }
 }

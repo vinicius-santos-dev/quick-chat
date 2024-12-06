@@ -1,5 +1,9 @@
 <app-page-container pageType="chat">
-  <aside class="w-full md:w-1/4 md:border-r relative">
+  <aside
+    class="w-full md:w-1/4 md:border-r relative"
+    [class.hidden]="isMobile() && isChatSelected()"
+    [class.md:block]="true"
+  >
     <div class="flex items-center justify-between p-4 border-b">
       <h1 class="text-3xl font-bold text-teal-600">QuickChat</h1>
 
@@ -16,13 +20,24 @@
       <app-search-input controlName="search" placeholder="Search by name" />
     </form>
 
-    <app-chat-list [chats]="filteredChats()" />
+    <app-chat-list
+      [chats]="filteredChats()"
+      (chatSelected)="onChatSelected($event)"
+    />
 
-    <app-loading-button class="absolute bottom-3 inset-x-3 md:w-auto" (click)="newChatModal.show()"
+    <app-loading-button
+      class="absolute bottom-3 inset-x-3 md:w-auto"
+      (click)="newChatModal.show()"
       >Start new chat</app-loading-button
     >
   </aside>
-  <main class="w-3/4 hidden md:block"></main>
+  <main
+    class="w-full md:w-3/4"
+    [class.hidden]="isMobile() && !isChatSelected()"
+    [class.md:block]="true"
+  >
+    <router-outlet />
+  </main>
 </app-page-container>
 
 <app-new-chat-modal #newChatModal />
