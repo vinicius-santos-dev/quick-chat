@@ -1,5 +1,14 @@
 <div class="h-full flex flex-col">
   <div class="border-b p-3 flex items-center gap-3 bg-teal-600">
+    @if (isMobile()) {
+    <button
+      class="text-white hover:bg-teal-700 rounded-full p-2"
+      (click)="onBack()"
+    >
+      <i class="uil uil-angle-left-b text-2xl"></i>
+    </button>
+    }
+
     <img
       class="w-10 h-10 rounded-full"
       [src]="otherParticipant().photoURL"
@@ -8,7 +17,7 @@
 
     <div class="flex flex-col justify-start">
       <h2 class="font-bold text-white">{{ otherParticipant().name }}</h2>
-      <p class="text-white">{{ otherParticipant().bio }}</p>
+      <p class="text-white text-sm">{{ otherParticipant().bio }}</p>
     </div>
   </div>
 

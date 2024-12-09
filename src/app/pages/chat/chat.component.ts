@@ -9,10 +9,14 @@ import {
   signal,
 } from '@angular/core';
 import { useAuthStore } from '../../stores/auth.store';
-import { Router, RouterModule } from '@angular/router';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { MenuModule } from 'primeng/menu';
-import { BreakpointsService, PageContainerComponent, SearchInputComponent } from '../../../shared';
+import {
+  BreakpointsService,
+  PageContainerComponent,
+  SearchInputComponent,
+} from '../../../shared';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ChatListComponent } from './components/chat-list/chat-list.component';
 import { ChatItem } from './interfaces/chat-item.interface';
@@ -20,6 +24,7 @@ import { debounceTime, distinctUntilChanged, filter } from 'rxjs';
 import { LoadingButtonComponent } from '../../../shared/components/loading-button/loading-button.component';
 import { NewChatModalComponent } from './modals/new-chat-modal/new-chat-modal.component';
 import { useChatStore } from '../../stores/chat.store';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-chat',
@@ -47,18 +52,25 @@ export class ChatComponent implements OnInit {
 
   protected readonly currentUser = computed(() => this.authStore.currentUser());
 
-  //TODO: change participantNames
   protected readonly chats = computed<ChatItem[]>(() => {
-    return this.chatStore.chats().map((chat) => ({
-      id: chat.id,
-      displayName:
-        chat.participantNames?.find(
+    return this.chatStore.chats().map((chat) => {
+      // Find the index of the other participant
+      const otherParticipantIndex =
+        chat.participantNames?.findIndex(
           (name) => name !== this.currentUser()?.displayName
-        ) || 'Unknown User',
-      photoURL: 'assets/default-avatar.png',
-      lastMessage: chat.lastMessage,
-      timestamp: chat.lastMessageTimestamp.toDate(),
-    }));
+        ) ?? -1;
+
+      return {
+        id: chat.id,
+        displayName:
+          chat.participantNames?.[otherParticipantIndex] || 'Unknown User',
+        photoURL:
+          chat.participantPhotos?.[otherParticipantIndex] ||
+          'assets/default-avatar.png',
+        lastMessage: chat.lastMessage,
+        timestamp: chat.lastMessageTimestamp.toDate(),
+      };
+    });
   });
 
   protected readonly filteredChats = computed(() => {
@@ -81,6 +93,19 @@ export class ChatComponent implements OnInit {
     search: [''],
   });
 
+  public menuItems: MenuItem[] = [
+    {
+      label: 'Edit Profile',
+      icon: 'uil uil-edit',
+      command: () => this.onEditProfile(),
+    },
+    {
+      label: 'Logout',
+      icon: 'uil uil-signout',
+      command: () => this.onLogout(),
+    },
+  ];
+
   public ngOnInit(): void {
     this.searchForm
       .get('search')
@@ -95,20 +120,19 @@ export class ChatComponent implements OnInit {
       // Cleaner: Register cleanup directly
       this.destroyRef.onDestroy(unsubscribe);
     }
-  }
 
-  public menuItems: MenuItem[] = [
-    {
-      label: 'Edit Profile',
-      icon: 'uil uil-edit',
-      command: () => this.onEditProfile(),
-    },
-    {
-      label: 'Logout',
-      icon: 'uil uil-signout',
-      command: () => this.onLogout(),
-    },
-  ];
+    // Reset chat selected state when navigating back
+    this.router.events
+      .pipe(
+        filter(
+          (event): event is NavigationEnd => event instanceof NavigationEnd
+        ),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((event) => {
+        this.isChatSelected.set(event.url !== '/chat');
+      });
+  }
 
   public async onLogout(): Promise<void> {
     try {

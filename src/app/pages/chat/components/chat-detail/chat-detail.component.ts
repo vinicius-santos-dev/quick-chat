@@ -1,13 +1,14 @@
 import { Component, computed, DestroyRef, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { useChatStore } from '../../../../stores/chat.store';
 import { useAuthStore } from '../../../../stores/auth.store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { BreakpointsService } from '../../../../../shared';
 
 @Component({
   selector: 'app-chat-detail',
   standalone: true,
-  imports: [],
+  imports: [RouterModule],
   templateUrl: './chat-detail.component.html',
   styleUrl: './chat-detail.component.scss',
 })
@@ -16,6 +17,10 @@ export class ChatDetailComponent {
   private authStore = inject(useAuthStore);
   private route = inject(ActivatedRoute);
   private destroyRef = inject(DestroyRef);
+  private router = inject(Router);
+
+  protected readonly isMobile = inject(BreakpointsService).isMobile;
+
   private readonly DEFAULT_USER = {
     name: 'Unknown User',
     photoURL: 'assets/default-avatar.png',
@@ -59,5 +64,9 @@ export class ChatDetailComponent {
           this.chatStore.listenToMessages(chatId);
         }
       });
+  }
+
+  public onBack(): void {
+    this.router.navigate(['/chat']);
   }
 }
