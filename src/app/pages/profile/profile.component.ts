@@ -1,8 +1,4 @@
-import {
-  Component,
-  computed,
-  effect,
-} from '@angular/core';
+import { Component, computed, effect } from '@angular/core';
 import {
   AuthFormBase,
   FormInputComponent,
@@ -27,40 +23,38 @@ import { RouterModule } from '@angular/router';
   styleUrl: './profile.component.scss',
 })
 export class ProfileComponent extends AuthFormBase {
+  protected readonly currentUser = computed(() => this.authStore.currentUser());
 
-  protected readonly user = computed(() => this.authStore.currentUser());
+  public selectedFile: File | null = null;
+  public imagePreview: string | null = null;
+
   public profileForm = this.formBuilder.group({
     displayName: ['', Validators.required],
     bio: [''],
   });
 
-  //TODO: Look if this is needed
-  public currentUser: AppUser | null = null;
-
   constructor() {
     super();
 
-    // Use effect to react to user changes
-    effect(() => {
-      this.currentUser = this.user();
-      console.log('User in effect:', this.currentUser);
-
-      if (this.currentUser) {
-        this.setProfile(this.currentUser);
-      }
-    });
+    if (this.currentUser()) {
+      this.setProfile(this.currentUser()!);
+    }
   }
 
   public async onSubmit(): Promise<void> {
-    if (this.profileForm.invalid || !this.currentUser) return;
+    if (this.profileForm.invalid || !this.currentUser()) return;
 
     try {
       this.formSubmitting.set(true);
 
-      await this.authStore.updateProfile(this.currentUser.uid, {
-        displayName: this.profileForm.value.displayName!,
-        bio: this.profileForm.value.bio!,
-      });
+      await this.authStore.updateProfile(
+        this.currentUser()!.uid,
+        {
+          displayName: this.profileForm.value.displayName!,
+          bio: this.profileForm.value.bio!,
+        },
+        this.selectedFile || undefined
+      );
 
       this.toastService.success('Profile updated successfully');
 
@@ -77,6 +71,21 @@ export class ProfileComponent extends AuthFormBase {
     } finally {
       this.formSubmitting.set(false);
     }
+  }
+
+  public onFileSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+
+    if (!file) return;
+
+    this.selectedFile = file;
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.imagePreview = reader.result as string;
+    };
+    reader.readAsDataURL(file);
   }
 
   private setProfile(user: AppUser): void {

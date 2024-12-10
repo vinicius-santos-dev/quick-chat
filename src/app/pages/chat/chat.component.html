@@ -7,7 +7,7 @@
     <div class="flex items-center justify-between p-4 border-b">
       <h1 class="text-3xl font-bold text-teal-600">QuickChat</h1>
 
-      <p-menu #menu [model]="menuItems" [popup]="true" />
+      <p-menu #menu [model]="menuItems" [popup]="true" appendTo="body" />
       <button
         class="w-10 h-10 rounded-full hover:bg-slate-100 active:bg-slate-200"
         (click)="menu.toggle($event)"

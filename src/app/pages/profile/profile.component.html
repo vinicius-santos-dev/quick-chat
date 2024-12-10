@@ -1,5 +1,7 @@
 <app-page-container pageType="profile">
-  <div class="md:w-[90%] w-full md:px-0 px-3 mx-auto py-4 flex flex-col items-center">
+  <div
+    class="md:w-[90%] w-full md:px-0 px-3 mx-auto py-4 flex flex-col items-center"
+  >
     <button class="font-bold self-start hover:text-teal-600 transition-colors">
       <a class="flex items-center" routerLink="/chat">
         <i class="uil uil-angle-left-b text-2xl"></i>
@@ -7,28 +9,58 @@
       </a>
     </button>
 
-    @if (user()) {
+    @if (currentUser()) {
     <div class="mx-auto w-full py-4 flex flex-col items-center justify-center">
-      <!-- IMPLEMENT PHOTO UPLOAD -->
-      <img
-        class="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover mb-6"
-        [src]="user()?.photoURL"
-        alt="Profile photo"
-      />
-  
       <form
-        class="w-full max-w-md flex flex-col gap-3"
+        class="w-full max-w-md flex flex-col items-center gap-3"
         [formGroup]="profileForm"
         (ngSubmit)="onSubmit()"
       >
-        <app-form-input label="Name" controlName="displayName"></app-form-input>
-        <app-form-input label="Bio" controlName="bio"></app-form-input>
+        <!-- Photo upload section -->
+        <div class="relative mb-6">
+          <img
+            class="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover"
+            [src]="
+              imagePreview ||
+              currentUser()?.photoURL ||
+              '/assets/default-avatar.png'
+            "
+            [alt]="currentUser()?.displayName"
+          />
+          <label
+            class="absolute bottom-0 right-0 w-10 h-10 flex justify-center items-center bg-teal-600 hover:bg-teal-700 text-white p-2 rounded-full cursor-pointer"
+            [class.opacity-75]="formSubmitting()"
+          >
+            <input
+              type="file"
+              class="hidden"
+              accept="image/*"
+              (change)="onFileSelected($event)"
+              [disabled]="formSubmitting()"
+            />
+            <i class="uil uil-camera text-xl"></i>
+          </label>
+        </div>
+
+        <app-form-input
+          label="Name"
+          controlName="displayName"
+          class="w-full"
+        ></app-form-input>
+
+        <app-form-input
+          class="w-full"
+          label="Bio"
+          controlName="bio"
+        ></app-form-input>
+        
         <app-loading-button
           class="md:static fixed bottom-3 inset-x-3 md:w-auto"
           [loading]="formSubmitting()"
           [disabled]="profileForm.invalid || formSubmitting()"
-          >Update</app-loading-button
         >
+          Update
+        </app-loading-button>
       </form>
     </div>
     }

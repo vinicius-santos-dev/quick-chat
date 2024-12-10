@@ -7,8 +7,16 @@ import {
   signOut,
   User,
 } from '@angular/fire/auth';
-import { Firestore, doc, setDoc, getDoc, updateDoc } from '@angular/fire/firestore';
+import {
+  Firestore,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+} from '@angular/fire/firestore';
 import { CookieService } from 'ngx-cookie-service';
+import { createClient } from '@supabase/supabase-js';
+import { environment } from '../../environments/environment';
 
 export interface AppUser {
   uid: string;
@@ -18,6 +26,18 @@ export interface AppUser {
   photoURL?: string;
 }
 
+const supabase = createClient(
+  environment.supabase.url,
+  environment.supabase.publicKey,
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  }
+);
+
 // Create an injectable authentication store using ngxtension's utility
 export const useAuthStore = createInjectable(() => {
   const auth = inject(Auth);
@@ -25,7 +45,9 @@ export const useAuthStore = createInjectable(() => {
   const cookieService = inject(CookieService);
 
   const storedUser = cookieService.get('auth_user');
-  const currentUser = signal<AppUser | null>(storedUser ? JSON.parse(storedUser) : null);
+  const currentUser = signal<AppUser | null>(
+    storedUser ? JSON.parse(storedUser) : null
+  );
   const authStateLoading = signal<boolean>(false);
   const isInitialized = signal<boolean>(true);
 
@@ -33,17 +55,26 @@ export const useAuthStore = createInjectable(() => {
   // This will run whenever the authentication state changes (login/logout)
   auth.onAuthStateChanged(async (user) => {
     console.log('Firebase Auth State Changed:', user);
-    
+
     // authStateLoading.set(true);
     try {
       if (user) {
-        const cookieUser = storedUser ? JSON.parse(storedUser) : null;
-        if (!cookieUser || cookieUser.uid !== user.uid) {
-          authStateLoading.set(true);
-          console.log('Getting user from Firestore:', user.uid);
-          const appUser = await getUserFromFirestore(user.uid);
-          console.log('Firestore user data:', appUser);
-          cookieService.set('auth_user', JSON.stringify(appUser), 7, '/', '', true, 'Strict');
+        // Always get fresh data from Firestore
+        authStateLoading.set(true);
+        console.log('Getting user from Firestore:', user.uid);
+        const appUser = await getUserFromFirestore(user.uid);
+        console.log('Firestore user data:', appUser);
+
+        if (appUser) {
+          cookieService.set(
+            'auth_user',
+            JSON.stringify(appUser),
+            7,
+            '/',
+            '',
+            true,
+            'Strict'
+          );
           currentUser.set(appUser);
         }
       } else {
@@ -175,16 +206,59 @@ export const useAuthStore = createInjectable(() => {
     }
   }
 
-  async function updateProfile(uid: string, data: Partial<AppUser>): Promise<void> {
+  async function updateProfile(
+    uid: string,
+    data: Partial<AppUser>,
+    photoFile?: File
+  ): Promise<void> {
     try {
+      // Handle photo upload if provided
+      if (photoFile) {
+        // Validate file
+        if (photoFile.size > 5 * 1024 * 1024) {
+          // 5MB
+          throw new Error('File size too large. Maximum size is 5MB.');
+        }
+
+        if (!photoFile.type.startsWith('image/')) {
+          throw new Error('Invalid file type. Only images are allowed.');
+        }
+
+        const filePath = `${uid}/${Date.now()}_${photoFile.name}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('user-images')
+          .upload(filePath, photoFile);
+
+        if (uploadError) throw uploadError;
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from('user-images').getPublicUrl(filePath);
+        // Add the URL to the data object
+        data.photoURL = publicUrl;
+
+        // If there is an old photo, delete it from Supabase
+        const currentUser = await getUserFromFirestore(uid);
+        if (currentUser?.photoURL) {
+          try {
+            // Extract the file path from the old URL
+            const oldPath = currentUser.photoURL.split('/').slice(-2).join('/');
+            await supabase.storage.from('user-images').remove([oldPath]);
+          } catch (deleteError) {
+            console.error('Error deleting old photo:', deleteError);
+          }
+        }
+      }
+
       await updateDoc(doc(firestore, `users/${uid}`), data);
       const updatedUser = await getUserFromFirestore(uid);
       currentUser.set(updatedUser);
     } catch (error) {
       console.error('Error updating profile:', error);
       throw new Error('Failed to update profile');
+    }
   }
-}
 
   return {
     currentUser,
