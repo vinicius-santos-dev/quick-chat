@@ -8,12 +8,6 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
-    path: 'chat',
-    loadComponent: () =>
-      import('./pages/chat/chat.component').then((m) => m.ChatComponent),
-    canActivate: [authGuard(true)],
-  },
-  {
     path: 'login',
     loadComponent: () =>
       import('./pages/login/login.component').then((m) => m.LoginComponent),
@@ -24,6 +18,20 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/signup/signup.component').then((m) => m.SignupComponent),
     canActivate: [authGuard(false)],
+  },
+  {
+    path: 'chat',
+    loadComponent: () =>
+      import('./pages/chat/chat.component').then((m) => m.ChatComponent),
+    canActivate: [authGuard(true)],
+    children: [
+      {
+        path: ':chatId',
+        loadComponent: () => 
+          import('./pages/chat/components/chat-detail/chat-detail.component')
+            .then((m) => m.ChatDetailComponent),
+      }
+    ]
   },
   {
     path: 'profile',
