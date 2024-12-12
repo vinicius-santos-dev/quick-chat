@@ -1,8 +1,8 @@
-import { Component, computed, effect } from '@angular/core';
+import { Component, computed } from '@angular/core';
 import {
   AuthFormBase,
   FormInputComponent,
-  LoadingButtonComponent,
+  ButtonComponent,
   PageContainerComponent,
 } from '../../../shared';
 import { AppUser } from '../../stores/auth.store';
@@ -16,7 +16,7 @@ import { RouterModule } from '@angular/router';
     PageContainerComponent,
     ReactiveFormsModule,
     FormInputComponent,
-    LoadingButtonComponent,
+    ButtonComponent,
     RouterModule,
   ],
   templateUrl: './profile.component.html',
@@ -57,8 +57,6 @@ export class ProfileComponent extends AuthFormBase {
       );
 
       this.toastService.success('Profile updated successfully');
-
-      this.router.navigate(['/chat']);
     } catch (error) {
       console.error('Error updating profile:', error);
 

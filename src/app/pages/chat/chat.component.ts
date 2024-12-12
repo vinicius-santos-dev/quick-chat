@@ -1,12 +1,8 @@
 import {
   Component,
   computed,
-  DestroyRef,
-  effect,
-  inject,
-  OnDestroy,
-  OnInit,
-  signal,
+  DestroyRef, inject, OnInit,
+  signal
 } from '@angular/core';
 import { useAuthStore } from '../../stores/auth.store';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
@@ -21,7 +17,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ChatListComponent } from './components/chat-list/chat-list.component';
 import { ChatItem } from './interfaces/chat-item.interface';
 import { debounceTime, distinctUntilChanged, filter } from 'rxjs';
-import { LoadingButtonComponent } from '../../../shared/components/loading-button/loading-button.component';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { NewChatModalComponent } from './modals/new-chat-modal/new-chat-modal.component';
 import { useChatStore } from '../../stores/chat.store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -36,7 +32,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     PageContainerComponent,
     ChatListComponent,
     SearchInputComponent,
-    LoadingButtonComponent,
+    ButtonComponent,
     NewChatModalComponent,
   ],
   templateUrl: './chat.component.html',

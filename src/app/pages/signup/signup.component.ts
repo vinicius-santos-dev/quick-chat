@@ -5,7 +5,7 @@ import {
   AuthHeaderComponent,
   AuthLayoutComponent,
   FormInputComponent,
-  LoadingButtonComponent,
+  ButtonComponent,
 } from '../../../shared/components';
 import { AuthFormBase } from '../../../shared';
 
@@ -16,7 +16,7 @@ import { AuthFormBase } from '../../../shared';
     ReactiveFormsModule,
     AuthLayoutComponent,
     FormInputComponent,
-    LoadingButtonComponent,
+    ButtonComponent,
     AuthFooterComponent,
     AuthHeaderComponent
   ],

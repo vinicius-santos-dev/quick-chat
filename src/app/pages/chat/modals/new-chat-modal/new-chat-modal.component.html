@@ -18,12 +18,12 @@
 
       <div class="flex justify-end gap-3 mt-4">
         <button type="button" (click)="visible.set(false)">Cancel</button>
-        <app-loading-button
+        <app-button
           [loading]="loading()"
           [disabled]="chatForm.invalid || loading()"
         >
           Start chat
-        </app-loading-button>
+        </app-button>
       </div>
     </div>
   </form>

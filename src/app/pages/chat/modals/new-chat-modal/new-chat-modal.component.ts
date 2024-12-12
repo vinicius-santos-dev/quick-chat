@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
 import { FormInputComponent } from '../../../../../shared/components/form-input/form-input.component';
-import { LoadingButtonComponent } from '../../../../../shared/components/loading-button/loading-button.component';
+import { ButtonComponent } from '../../../../../shared/components/button/button.component';
 import { useChatStore } from '../../../../stores/chat.store';
 import { Router } from '@angular/router';
 import { ToastService } from '../../../../../shared';
@@ -14,7 +14,7 @@ import { ToastService } from '../../../../../shared';
     DialogModule,
     ReactiveFormsModule,
     FormInputComponent,
-    LoadingButtonComponent,
+    ButtonComponent,
   ],
   templateUrl: './new-chat-modal.component.html',
   styleUrl: './new-chat-modal.component.scss',

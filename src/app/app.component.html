@@ -1,11 +1,4 @@
 <main class="relative">
-  @if (!isInitialized()) {
-    <div class="fixed inset-0 bg-white z-50 flex items-center justify-center">
-      <div class="animate-spin rounded-full h-8 w-8 border-2 border-teal-600 border-t-transparent"></div>
-    </div>
-  } @else {
-
-    <p-toast position="bottom-center"></p-toast>
-    <router-outlet />
-  }
+  <p-toast position="bottom-center"></p-toast>
+  <router-outlet />
 </main>

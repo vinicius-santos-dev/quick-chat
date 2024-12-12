@@ -54,13 +54,13 @@
           controlName="bio"
         ></app-form-input>
         
-        <app-loading-button
+        <app-button
           class="md:static fixed bottom-3 inset-x-3 md:w-auto"
           [loading]="formSubmitting()"
           [disabled]="profileForm.invalid || formSubmitting()"
         >
           Update
-        </app-loading-button>
+        </app-button>
       </form>
     </div>
     }

@@ -1,13 +1,13 @@
 import { Component, Input } from '@angular/core';
 
 @Component({
-  selector: 'app-loading-button',
+  selector: 'app-button',
   standalone: true,
   imports: [],
-  templateUrl: './loading-button.component.html',
-  styleUrl: './loading-button.component.scss'
+  templateUrl: './button.component.html',
+  styleUrl: './button.component.scss'
 })
-export class LoadingButtonComponent {
+export class ButtonComponent {
   @Input() public loading = false;
   @Input() public disabled = false;
 }

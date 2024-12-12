@@ -49,7 +49,6 @@ export const useAuthStore = createInjectable(() => {
     storedUser ? JSON.parse(storedUser) : null
   );
   const authStateLoading = signal<boolean>(false);
-  const isInitialized = signal<boolean>(true);
 
   // Set up Firebase auth state listener to keep user state in sync
   // This will run whenever the authentication state changes (login/logout)
@@ -84,7 +83,6 @@ export const useAuthStore = createInjectable(() => {
       }
     } finally {
       authStateLoading.set(false);
-      isInitialized.set(true);
     }
   });
 
@@ -267,6 +265,5 @@ export const useAuthStore = createInjectable(() => {
     logout,
     updateProfile,
     authStateLoading,
-    isInitialized,
   };
 });
