@@ -189,6 +189,16 @@ export const useChatStore = createInjectable(() => {
   }
 
   async function uploadChatImage(file: File, chatId: string): Promise<string> {
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('File size too large. Maximum size is 5MB.');
+      }
+
+      if (!file.type.startsWith('image/')) {
+        throw new Error('Invalid file type. Only images are allowed.');
+      }
+    }
+
     const fileName = `${chatId}/${Date.now()}_${file.name}`;
 
     const { data, error } = await supabase.storage
