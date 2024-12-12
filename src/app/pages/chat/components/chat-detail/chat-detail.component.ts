@@ -1,6 +1,5 @@
 import {
   AfterViewChecked,
-  AfterViewInit,
   Component,
   computed,
   DestroyRef,
@@ -13,7 +12,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { useChatStore } from '../../../../stores/chat.store';
 import { useAuthStore } from '../../../../stores/auth.store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BreakpointsService } from '../../../../../shared';
+import { BreakpointsService, ToastService } from '../../../../../shared';
 import { ButtonModule } from 'primeng/button';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -38,6 +37,8 @@ export class ChatDetailComponent implements AfterViewChecked {
 
   protected readonly isMobile = inject(BreakpointsService).isMobile;
   protected readonly chatId = signal<string>('');
+  protected toastService = inject(ToastService);
+
   protected readonly currentUser = computed(() => this.authStore.currentUser());
   protected readonly messages = computed(() => this.chatStore.messages());
 
@@ -132,6 +133,13 @@ export class ChatDetailComponent implements AfterViewChecked {
       );
     } catch (error) {
       console.error('Error uploading image:', error);
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'An unexpected error occurred. Please try again.';
+
+      this.toastService.error(message);
     }
   }
 
