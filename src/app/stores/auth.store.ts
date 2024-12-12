@@ -15,8 +15,7 @@ import {
   updateDoc,
 } from '@angular/fire/firestore';
 import { CookieService } from 'ngx-cookie-service';
-import { createClient } from '@supabase/supabase-js';
-import { environment } from '../../environments/environment';
+import { supabase } from '../../shared';
 
 export interface AppUser {
   uid: string;
@@ -26,17 +25,6 @@ export interface AppUser {
   photoURL?: string;
 }
 
-const supabase = createClient(
-  environment.supabase.url,
-  environment.supabase.publicKey,
-  {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-    },
-  }
-);
 
 // Create an injectable authentication store using ngxtension's utility
 export const useAuthStore = createInjectable(() => {

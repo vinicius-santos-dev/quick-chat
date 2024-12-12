@@ -119,6 +119,22 @@ export class ChatDetailComponent implements AfterViewChecked {
     this.chatDetailForm.reset();
   }
 
+  public async onImageSelected(event: any): Promise<void> {
+    const file = event.target.files?.[0];
+    
+    if (!file || !this.currentUser()) return;
+
+    try {
+      await this.chatStore.sendImageMessage(
+        this.chatId(),
+        this.currentUser()!.uid,
+        file
+      );
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    }
+  }
+
   private scrollToBottom(): void {
     try {
       const element = this.messagesContainer.nativeElement;
