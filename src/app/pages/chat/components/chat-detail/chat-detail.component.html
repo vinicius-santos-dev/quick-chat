@@ -52,9 +52,9 @@
     </div>
   </div>
 
-  <div class="border-t p-3">
+  <div class="border-t p-2 md:p-3">
     <form
-      class="flex gap-3 items-center"
+      class="flex gap-2 md:gap-3 items-center"
       [formGroup]="chatDetailForm"
       (ngSubmit)="onSubmit()"
     >
@@ -69,13 +69,13 @@
       </label>
 
       <input
-        class="flex-1 border rounded-full p-3"
+        class="flex-1 border rounded-full p-2 md:p-3 text-sm md:text-base"
         type="text"
         formControlName="message"
         placeholder="Type a message"
       />
       <p-button
-        class="flex justify-center items-center bg-teal-600 hover:bg-teal-700 text-white rounded-full w-12 h-12"
+        class="flex justify-center items-center bg-teal-600 hover:bg-teal-700 text-white rounded-full w-10 h-10 md:w-12 md:h-12"
         [disabled]="chatDetailForm.invalid"
         icon="uil uil-message"
         type="submit"
