@@ -32,8 +32,6 @@ export const useAuthStore = createInjectable(() => {
   const firestore = inject(Firestore);
   const cookieService = inject(CookieService);
 
-  console.log('[Auth Store] Initializing');
-
   const storedUser = cookieService.get('auth_user');
   const currentUser = signal<AppUser | null>(
     storedUser ? JSON.parse(storedUser) : null
@@ -41,20 +39,9 @@ export const useAuthStore = createInjectable(() => {
 
   const authStateLoading = signal<boolean>(false);
 
-  console.log('[Auth Store] Initial state -', {
-    hasStoredUser: !!storedUser,
-    loading: authStateLoading(),
-  });
-
   // Set up Firebase auth state listener to keep user state in sync
   // This will run whenever the authentication state changes (login/logout)
   auth.onAuthStateChanged(async (user) => {
-    // console.log('Firebase Auth State Changed:', user);
-    console.log('[Auth Store] Auth state changed', {
-      hasUser: !!user,
-      currentLoading: authStateLoading(),
-    });
-
     authStateLoading.set(true);
     try {
       if (user) {
@@ -77,14 +64,12 @@ export const useAuthStore = createInjectable(() => {
           currentUser.set(appUser);
         }
       } else {
-        console.log('[Auth Store] Clearing user data');
         cookieService.delete('auth_user');
         currentUser.set(null);
       }
     } catch (error) {
-      console.error('[Auth Store] Error processing auth state:', error);
+      throw new Error('Failed to fetch user data');
     } finally {
-      console.log('[Auth Store] Setting loading to false');
       authStateLoading.set(false);
     }
   });
@@ -92,10 +77,11 @@ export const useAuthStore = createInjectable(() => {
   async function getUserFromFirestore(uid: string): Promise<AppUser | null> {
     try {
       const userDoc = await getDoc(doc(firestore, `users/${uid}`));
-      console.log('Firestore doc exists:', userDoc.exists());
+      
       if (userDoc.exists()) {
         return userDoc.data() as AppUser;
       }
+      
       return null;
     } catch (error) {
       console.error('Error fetching user from Firestore:', error);
