@@ -1,5 +1,5 @@
 import { createInjectable } from 'ngxtension/create-injectable';
-import { inject, signal, computed, effect } from '@angular/core';
+import { inject, signal, computed, effect, DestroyRef } from '@angular/core';
 import {
   Firestore,
   collection,
@@ -36,17 +36,38 @@ export interface Message {
   imageUrl?: string;
 }
 
+/**
+ * Chat Store
+ *
+ * Manages real-time chat functionality including:
+ * - Chat list management
+ * - Message handling
+ * - Real-time updates
+ * - Image upload and messaging
+ */
 export const useChatStore = createInjectable(() => {
+  // Dependencies
   const firestore = inject(Firestore);
   const authStore = inject(useAuthStore);
+  const destroyRef = inject(DestroyRef);
+
+  // State Management
   const chats = signal<Chat[]>([]);
   const currentChatId = signal<string | null>(null);
   const messages = signal<Message[]>([]);
 
+  // Subscriptions tracking
+  let chatSubscription: (() => void) | null = null;
+  let messageSubscription: (() => void) | null = null;
+
+  // Computed state
   const currentChat = computed(() =>
     chats().find((chat) => chat.id === currentChatId())
   );
 
+  /**
+   * Initialize chat listeners when user is authenticated
+   */
   effect(() => {
     const userId = authStore.currentUser()?.uid;
     if (userId) {
@@ -54,12 +75,17 @@ export const useChatStore = createInjectable(() => {
     }
   });
 
+  /**
+   * User Information Management
+   * Fetches and formats user data from Firestore
+   */
   async function getUserInfo(userId: string): Promise<{
     name: string;
     photoURL: string;
     bio: string;
   }> {
     const userDoc = await getDoc(doc(firestore, `users/${userId}`));
+
     if (userDoc.exists()) {
       const userData = userDoc.data() as AppUser;
       return {
@@ -80,7 +106,9 @@ export const useChatStore = createInjectable(() => {
     photos: string[];
     bios: string[];
   }> {
+
     const participantInfo = await Promise.all(participantIds.map(getUserInfo));
+
     return {
       names: participantInfo.map((info) => info.name),
       photos: participantInfo.map((info) => info.photoURL),
@@ -88,10 +116,15 @@ export const useChatStore = createInjectable(() => {
     };
   }
 
+  /**
+   * Real-time Chat Management
+   * Sets up listeners and handles chat updates
+   */
   function listenToChats(userId: string) {
-    const chatsRef = collection(firestore, 'chats');
+    if (chatSubscription) chatSubscription();
+
     const q = query(
-      chatsRef,
+      collection(firestore, 'chats'),
       where('participants', 'array-contains', userId),
       orderBy('lastMessageTimestamp', 'desc')
     );
@@ -101,9 +134,11 @@ export const useChatStore = createInjectable(() => {
         snapshot.docs.map(async (doc) => {
           const chatData = { id: doc.id, ...doc.data() } as Chat;
           const info = await fetchParticipantInfo(chatData.participants);
+
           chatData.participantNames = info.names;
           chatData.participantPhotos = info.photos;
           chatData.participantBios = info.bios;
+
           return chatData;
         })
       );
@@ -111,6 +146,10 @@ export const useChatStore = createInjectable(() => {
     });
   }
 
+  /**
+   * Real-time Message Management
+   * Handles message updates for current chat
+   */
   function listenToMessages(chatId: string) {
     currentChatId.set(chatId);
     const messagesRef = collection(firestore, `chats/${chatId}/messages`);
@@ -143,6 +182,7 @@ export const useChatStore = createInjectable(() => {
 
   async function createNewChat(participantEmail: string) {
     const currentUser = authStore.currentUser();
+  
     if (!currentUser) throw new Error('You must be logged in to create a chat');
 
     // Find the user with the given email
@@ -189,35 +229,49 @@ export const useChatStore = createInjectable(() => {
   }
 
   async function uploadChatImage(file: File, chatId: string): Promise<string> {
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        throw new Error('File size too large. Maximum size is 5MB.');
+    try {
+      if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+          throw new Error('File size too large. Maximum size is 5MB.');
+        }
+  
+        if (!file.type.startsWith('image/')) {
+          throw new Error('Invalid file type. Only images are allowed.');
+        }
       }
-
-      if (!file.type.startsWith('image/')) {
-        throw new Error('Invalid file type. Only images are allowed.');
+  
+      const fileName = `${chatId}/${Date.now()}_${file.name}`;
+  
+      try {
+        // Upload to Supabase
+        const { error: uploadError } = await supabase.storage
+          .from('chat-images')
+          .upload(fileName, file);
+  
+        if (uploadError) throw uploadError;
+  
+        // Get public URL
+        const {
+          data: { publicUrl: imageUrl },
+        } = supabase.storage.from('chat-images').getPublicUrl(fileName);
+  
+        return imageUrl;
+      } catch (uploadError) {
+        throw new Error(`Failed to upload image: ${uploadError}`);
       }
+    } catch (error) {
+      throw new Error('Image upload failed');
     }
-
-    const fileName = `${chatId}/${Date.now()}_${file.name}`;
-
-    const { data, error } = await supabase.storage
-      .from('chat-images')
-      .upload(fileName, file);
-
-    if (error) throw error;
-
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from('chat-images').getPublicUrl(fileName);
-
-    return publicUrl;
   }
 
-  async function sendImageMessage(chatId: string, senderId: string, file: File) {
+  async function sendImageMessage(
+    chatId: string,
+    senderId: string,
+    file: File
+  ) {
     const imageUrl = await uploadChatImage(file, chatId);
     const messagesRef = collection(firestore, `chats/${chatId}/messages`);
-    
+
     const newMessage = {
       chatId,
       senderId,
@@ -246,6 +300,6 @@ export const useChatStore = createInjectable(() => {
     createNewChat,
     getUserInfo,
     sendImageMessage,
-    uploadChatImage
+    uploadChatImage,
   };
 });

@@ -43,7 +43,7 @@ export class NewChatModalComponent {
       this.visible.set(false);
       this.router.navigate(['/chat', chatId]);
       this.toastService.success(
-        `Chat created successfully! Chat ID: ${chatId}`
+        `Chat created successfully!`
       );
     } catch (error) {
       console.error('New chat error: ', error);

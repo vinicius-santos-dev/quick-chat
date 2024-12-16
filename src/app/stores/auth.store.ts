@@ -1,5 +1,5 @@
 import { createInjectable } from 'ngxtension/create-injectable';
-import { inject, signal } from '@angular/core';
+import { DestroyRef, inject, signal } from '@angular/core';
 import {
   Auth,
   createUserWithEmailAndPassword,
@@ -25,50 +25,75 @@ export interface AppUser {
   photoURL?: string;
 }
 
-
-// Create an injectable authentication store using ngxtension's utility
+/**
+ * Authentication Store
+ *
+ * Manages application's authentication state and user data.
+ * Handles Firebase authentication, Firestore user data, and local storage.
+ * Uses ngxtension's createInjectable for dependency injection pattern.
+ */
 export const useAuthStore = createInjectable(() => {
+  // Dependencies
   const auth = inject(Auth);
   const firestore = inject(Firestore);
   const cookieService = inject(CookieService);
+  const destroyRef = inject(DestroyRef);
 
-  const storedUser = cookieService.get('auth_user');
-  const currentUser = signal<AppUser | null>(
-    storedUser ? JSON.parse(storedUser) : null
-  );
+  // State Management
+  const currentUser = signal<AppUser | null>(null);
 
   const authStateLoading = signal<boolean>(false);
 
-  // Set up Firebase auth state listener to keep user state in sync
-  // This will run whenever the authentication state changes (login/logout)
-  auth.onAuthStateChanged(async (user) => {
+  // Cookie Management
+  const handleUserCookie = {
+    save: (user: AppUser) => {
+      cookieService.set(
+        'auth_user',
+        JSON.stringify(user),
+        7,
+        '/',
+        '',
+        true,
+        'Strict'
+      );
+    },
+    load: () => {
+      const storedUser = cookieService.get('auth_user');
+      return storedUser ? JSON.parse(storedUser) : null;
+    },
+    clear: () => cookieService.delete('auth_user'),
+  };
+
+  // Initialize user from cookie
+  currentUser.set(handleUserCookie.load());
+
+  /**
+   * Firebase Auth State Management
+   *
+   * Handles authentication state changes and syncs with local storage
+   *
+   * Flow:
+   * 1. Sets loading state
+   * 2. Fetches user data from Firestore if authenticated
+   * 3. Updates cookie storage
+   * 4. Updates application state
+   * 5. Cleans up on logout
+   */
+  const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
     authStateLoading.set(true);
+
     try {
       if (user) {
-        // Always get fresh data from Firestore
-        console.log('[Auth Store] Getting Firestore user:', user.uid);
         const appUser = await getUserFromFirestore(user.uid);
-        console.log('[Auth Store] Firestore response:', appUser);
 
         if (appUser) {
-          console.log('[Auth Store] Updating cookie and state');
-          cookieService.set(
-            'auth_user',
-            JSON.stringify(appUser),
-            7,
-            '/',
-            '',
-            true,
-            'Strict'
-          );
+          handleUserCookie.save(appUser);
           currentUser.set(appUser);
         }
       } else {
-        cookieService.delete('auth_user');
+        handleUserCookie.clear();
         currentUser.set(null);
       }
-    } catch (error) {
-      throw new Error('Failed to fetch user data');
     } finally {
       authStateLoading.set(false);
     }
@@ -77,15 +102,14 @@ export const useAuthStore = createInjectable(() => {
   async function getUserFromFirestore(uid: string): Promise<AppUser | null> {
     try {
       const userDoc = await getDoc(doc(firestore, `users/${uid}`));
-      
+
       if (userDoc.exists()) {
         return userDoc.data() as AppUser;
       }
-      
+
       return null;
     } catch (error) {
-      console.error('Error fetching user from Firestore:', error);
-      return null;
+      throw new Error('Failed to fetch user profile');
     }
   }
 
@@ -102,9 +126,7 @@ export const useAuthStore = createInjectable(() => {
       };
 
       await setDoc(doc(firestore, `users/${user.uid}`), newUser);
-      console.log('User document created successfully');
     } catch (error) {
-      console.error('Error creating user document:', error);
       throw new Error('Failed to create user profile');
     }
   }
@@ -134,6 +156,7 @@ export const useAuthStore = createInjectable(() => {
       currentUser.set(appUser);
     } catch (error: any) {
       console.error('Signup error:', error);
+
       switch (error.code) {
         case 'auth/email-already-in-use':
           throw new Error(
@@ -165,6 +188,7 @@ export const useAuthStore = createInjectable(() => {
       currentUser.set(appUser);
     } catch (error: any) {
       console.error('Login error:', error);
+
       switch (error.code) {
         case 'auth/user-not-found':
         case 'auth/wrong-password':
@@ -185,7 +209,7 @@ export const useAuthStore = createInjectable(() => {
   async function logout(): Promise<void> {
     try {
       await signOut(auth);
-      cookieService.delete('auth_user');
+      handleUserCookie.clear();
       currentUser.set(null);
     } catch (error) {
       console.error('Logout error:', error);
@@ -195,15 +219,12 @@ export const useAuthStore = createInjectable(() => {
 
   async function updateProfile(
     uid: string,
-    data: Partial<AppUser>,
+    profileData: Partial<AppUser>,
     photoFile?: File
   ): Promise<void> {
     try {
-      // Handle photo upload if provided
       if (photoFile) {
-        // Validate file
         if (photoFile.size > 5 * 1024 * 1024) {
-          // 5MB
           throw new Error('File size too large. Maximum size is 5MB.');
         }
 
@@ -213,6 +234,7 @@ export const useAuthStore = createInjectable(() => {
 
         const filePath = `${uid}/${Date.now()}_${photoFile.name}`;
 
+        // Upload to Supabase
         const { error: uploadError } = await supabase.storage
           .from('user-images')
           .upload(filePath, photoFile);
@@ -220,13 +242,15 @@ export const useAuthStore = createInjectable(() => {
         if (uploadError) throw uploadError;
 
         const {
-          data: { publicUrl },
+          data: { publicUrl: imageUrl },
         } = supabase.storage.from('user-images').getPublicUrl(filePath);
+        
         // Add the URL to the data object
-        data.photoURL = publicUrl;
+        profileData.photoURL = imageUrl;
 
         // If there is an old photo, delete it from Supabase
         const currentUser = await getUserFromFirestore(uid);
+
         if (currentUser?.photoURL) {
           try {
             // Extract the file path from the old URL
@@ -238,14 +262,19 @@ export const useAuthStore = createInjectable(() => {
         }
       }
 
-      await updateDoc(doc(firestore, `users/${uid}`), data);
+      await updateDoc(doc(firestore, `users/${uid}`), profileData);
       const updatedUser = await getUserFromFirestore(uid);
+
       currentUser.set(updatedUser);
     } catch (error) {
-      console.error('Error updating profile:', error);
       throw new Error('Failed to update profile');
     }
   }
+
+  // Cleanup
+  destroyRef.onDestroy(() => {
+    unsubscribeAuth();
+  });
 
   return {
     currentUser,

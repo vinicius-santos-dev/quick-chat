@@ -40,7 +40,7 @@ export class SignupComponent extends AuthFormBase {
       if (!displayName || !email || !password) return;
 
       await this.authStore.signUp(email, password, displayName);
-      this.router.navigate(['/chat']);
+      this.router.navigate(['/profile']);
       console.log('Signup successful!', this.authStore.currentUser());
     } catch (error) {
       console.error('Signup error:', error);
