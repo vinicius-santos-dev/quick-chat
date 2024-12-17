@@ -35,7 +35,7 @@
           [class.bg-gray-100]="message.senderId !== currentUser()?.uid"
         >
         @if (message.imageUrl) {
-          <img [src]="message.imageUrl" alt="Message image" class="max-w-full object-cover rounded-lg mb-2">
+          <img [src]="message.imageUrl" alt="Message image" class="max-w-full max-h-[300px] object-cover rounded-lg mb-2">
         } @else {
           <p class="text-sm">{{ message.text }}</p>
         } 
