@@ -9,6 +9,15 @@ import { AppUser } from '../../stores/auth.store';
 import { ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
+/**
+ * Profile Component
+ * 
+ * Handles user profile management:
+ * - Extends AuthFormBase for auth functionality
+ * - Manages profile image uploads
+ * - Updates user profile information
+ * - Provides profile form with validation
+ */
 @Component({
   selector: 'app-profile',
   standalone: true,
@@ -41,6 +50,13 @@ export class ProfileComponent extends AuthFormBase {
     }
   }
 
+  /**
+   * Handles profile form submission
+   * - Validates form and user state
+   * - Updates profile info in Firestore
+   * - Handles image upload if new image selected
+   * - Shows success/error toast messages
+   */
   public async onSubmit(): Promise<void> {
     if (this.profileForm.invalid || !this.currentUser()) return;
 
@@ -71,21 +87,39 @@ export class ProfileComponent extends AuthFormBase {
     }
   }
 
+  /**
+   * Handles profile image selection
+   * - Updates selectedFile state
+   * - Creates base64 preview of selected image
+   * - Uses FileReader for image preview generation
+   */
   public onFileSelected(event: Event): void {
+    // Cast event.target to HTMLInputElement to access files property
     const file = (event.target as HTMLInputElement).files?.[0];
 
     if (!file) return;
 
     this.selectedFile = file;
 
-    // Create preview
+    // FileReader creates base64 string from file
     const reader = new FileReader();
+
+    // Called when readAsDataURL completes
     reader.onload = () => {
+      // reader.result contains base64 string like:
+      // "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
       this.imagePreview = reader.result as string;
     };
+
+    // Start reading file - triggers onload when done
     reader.readAsDataURL(file);
   }
 
+  /**
+   * Initializes profile form with user data
+   * - Sets display name and bio from AppUser
+   * - Used when component loads or user data updates
+   */
   private setProfile(user: AppUser): void {
     this.profileForm.patchValue({
       displayName: user.displayName,

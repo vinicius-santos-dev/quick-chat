@@ -9,6 +9,15 @@ import {
   ButtonComponent,
 } from '../../../shared';
 
+/**
+ * Login Component
+ * 
+ * Handles user authentication:
+ * - Extends AuthFormBase for common auth functionality
+ * - Validates user credentials
+ * - Manages login process with Firebase
+ * - Handles error states and success navigation
+ */
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -30,6 +39,12 @@ export class LoginComponent extends AuthFormBase {
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
+  /**
+   * Handles form submission:
+   * - Validates credentials with Firebase
+   * - Redirects to chat on success
+   * - Shows error toast on failure
+   */
   public async onSubmit(): Promise<void> {
     try {
       this.formSubmitting.set(true);
@@ -37,6 +52,7 @@ export class LoginComponent extends AuthFormBase {
       const { email, password } = this.loginForm.value;
 
       if (!email || !password) return;
+      
       await this.authStore.login(email, password);
       this.router.navigate(['/chat']);
     } catch (error) {

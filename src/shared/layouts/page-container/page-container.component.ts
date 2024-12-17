@@ -35,6 +35,13 @@ export class PageContainerComponent  {
   private breakpointsService = inject(BreakpointsService);
   protected readonly isMobile = this.breakpointsService.isMobile;
 
+  /**
+   * Calculates container dimensions based on page type and viewport
+   * Uses predefined CONTAINER_SIZES config for mobile/desktop breakpoints
+   * 
+   * @returns Object with width and height as viewport units (vw/vh)
+   * Example: { width: '90vw', height: '70vh' }
+   */
   public getContainerSize(): { width: string; height: string } {
     const { mobile, desktop } = CONTAINER_SIZES[this.pageType];
     const size = this.isMobile() ? mobile : desktop;

@@ -4,6 +4,20 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 
+/**
+ * Search Input Component
+ * 
+ * Reusable search input that integrates with Angular Reactive Forms:
+ * - Provides styled search input with icon
+ * - Handles form control binding
+ * - Uses PrimeNG input components
+ * 
+ * Usage:
+ * <app-search-input
+ *   controlName="search"
+ *   placeholder="Search users..."
+ * ></app-search-input>
+ */
 @Component({
   selector: 'app-search-input',
   standalone: true,
@@ -11,6 +25,13 @@ import { InputTextModule } from 'primeng/inputtext';
     IconFieldModule,
     InputIconModule,
     InputTextModule],
+  /**
+   * ViewProviders Configuration
+   * 
+   * Allows this component to access parent form's FormGroupDirective
+   * Required for nested form components to work with reactive forms
+   * ControlContainer enables form control inheritance from parent
+   */
     viewProviders: [
       {
         provide: ControlContainer,
@@ -26,10 +47,12 @@ export class SearchInputComponent {
 
   private formGroupDirective = inject(FormGroupDirective);
 
+  /** Access to parent form group */
   public get formGroup(): FormGroup {
     return this.formGroupDirective.form;
   }
 
+  /** Access to this component's form control */
   public get control() {
     return this.formGroup.get(this.controlName);
   }

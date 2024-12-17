@@ -17,6 +17,15 @@ import { ButtonModule } from 'primeng/button';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
+/**
+ * Chat Detail Component
+ * 
+ * Displays and manages active chat conversation:
+ * - Shows message history
+ * - Handles message sending (text & images)
+ * - Manages chat view scroll position
+ * - Supports responsive mobile/desktop layouts
+ */
 @Component({
   selector: 'app-chat-detail',
   standalone: true,
@@ -25,7 +34,9 @@ import { CommonModule } from '@angular/common';
   styleUrl: './chat-detail.component.scss',
 })
 export class ChatDetailComponent implements AfterViewChecked {
+  /** Reference to messages container for scroll management */
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
+  
   private previousMessagesLength = 0;
 
   private chatStore = inject(useChatStore);
@@ -48,6 +59,19 @@ export class ChatDetailComponent implements AfterViewChecked {
     bio: 'No bio available',
   } as const;
 
+  /**
+   * Gets other participant's info in current chat
+   * 
+   * Flow:
+   * 1. Get current chat and user
+   * 2. Find participant that isn't current user
+   * 3. Return participant info or default values
+   * 
+   * Returns object with:
+   * - name: Display name of other participant
+   * - photoURL: Profile image URL
+   * - bio: User bio
+   */
   protected readonly otherParticipant = computed(() => {
     const currentChat = this.chatStore.currentChat();
     const currentUser = this.authStore.currentUser();
@@ -92,7 +116,7 @@ export class ChatDetailComponent implements AfterViewChecked {
       });
   }
 
-  ngAfterViewChecked(): void {
+  public ngAfterViewChecked(): void {
     // Only scroll if messages length changed
     if (this.messages().length !== this.previousMessagesLength) {
       this.previousMessagesLength = this.messages().length;

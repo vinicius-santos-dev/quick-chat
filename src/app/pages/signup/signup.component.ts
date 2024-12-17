@@ -9,6 +9,15 @@ import {
 } from '../../../shared/components';
 import { AuthFormBase } from '../../../shared';
 
+/**
+ * Signup Component
+ * 
+ * Handles new user registration:
+ * - Extends AuthFormBase for common auth functionality
+ * - Validates user input
+ * - Manages signup process with Firebase
+ * - Handles error states and success navigation
+ */
 @Component({
   selector: 'app-signup',
   standalone: true,
@@ -31,6 +40,13 @@ export class SignupComponent extends AuthFormBase {
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
+
+  /**
+   * Handles form submission:
+   * - Creates new user account
+   * - Redirects to profile page on success
+   * - Shows error toast on failure
+   */
   public async onSubmit(): Promise<void> {
     try {
       this.formSubmitting.set(true);

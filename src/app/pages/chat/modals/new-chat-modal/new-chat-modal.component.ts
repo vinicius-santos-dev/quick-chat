@@ -7,6 +7,14 @@ import { useChatStore } from '../../../../stores/chat.store';
 import { Router } from '@angular/router';
 import { ToastService } from '../../../../../shared';
 
+/**
+ * New Chat Modal Component
+ * 
+ * Handles creation of new chat conversations:
+ * - Email-based user search
+ * - Chat creation with validation
+ * - Loading and error states
+ */
 @Component({
   selector: 'app-new-chat-modal',
   standalone: true,
@@ -32,6 +40,13 @@ export class NewChatModalComponent {
     email: ['', [Validators.required, Validators.email]],
   });
 
+  /**
+   * Handles chat creation:
+   * - Validates email input
+   * - Creates new chat via ChatStore
+   * - Navigates to new chat on success
+   * - Shows success/error toast messages
+   */
   public async onSubmit(): Promise<void> {
     if (this.chatForm.invalid) return;
 
@@ -40,13 +55,16 @@ export class NewChatModalComponent {
     try {
       const email = this.chatForm.value.email!;
       const chatId = await this.chatStore.createNewChat(email);
+      
       this.visible.set(false);
+
       this.router.navigate(['/chat', chatId]);
       this.toastService.success(
         `Chat created successfully!`
       );
     } catch (error) {
       console.error('New chat error: ', error);
+      
       const message =
         error instanceof Error
           ? error.message

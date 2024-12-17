@@ -22,6 +22,15 @@ import { NewChatModalComponent } from './modals/new-chat-modal/new-chat-modal.co
 import { useChatStore } from '../../stores/chat.store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+/**
+ * Chat Component
+ * 
+ * Main chat interface that:
+ * - Manages chat list and active chat state
+ * - Handles real-time chat updates
+ * - Provides search functionality
+ * - Manages new chat creation
+ */
 @Component({
   selector: 'app-chat',
   standalone: true,
@@ -50,6 +59,7 @@ export class ChatComponent implements OnInit {
 
   protected readonly chats = computed<ChatItem[]>(() => {
     return this.chatStore.chats().map((chat) => {
+
       // Find the index of the other participant
       const otherParticipantIndex =
         chat.participantNames?.findIndex(

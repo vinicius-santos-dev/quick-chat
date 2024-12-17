@@ -1,6 +1,14 @@
 import { isPlatformBrowser } from '@angular/common';
 import { DestroyRef, inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 
+/**
+ * Breakpoints Service
+ * 
+ * Provides responsive design breakpoint detection:
+ * - Tracks mobile/desktop viewport state
+ * - Uses MediaQuery API for viewport changes
+ * - Manages cleanup of event listeners
+ */
 @Injectable({
   providedIn: 'root',
 })

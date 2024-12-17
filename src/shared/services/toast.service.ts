@@ -1,6 +1,15 @@
 import { inject, Injectable } from '@angular/core';
 import { MessageService } from 'primeng/api';
 
+/**
+ * Toast Service
+ * 
+ * Provides application-wide toast notifications using PrimeNG MessageService:
+ * - Success messages (green)
+ * - Error messages (red)
+ * - Info messages (blue)
+ * - Warning messages (yellow)
+ */
 @Injectable({
   providedIn: 'root',
 })

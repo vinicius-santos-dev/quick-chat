@@ -5,6 +5,15 @@ import { Pipe, PipeTransform } from '@angular/core';
   standalone: true
 })
 export class RelativeTimePipe implements PipeTransform {
+  /**
+ * RelativeTime Pipe
+ * 
+ * Formats dates into relative time strings based on time difference:
+ * - Same day: Shows time (1:30 PM)
+ * - Yesterday: Shows "Yesterday"
+ * - Within week: Shows day name (Monday)
+ * - Older: Shows full date (12/17/2024)
+ */
   transform(value: Date | number | string): string {
     if (!value) return '';
     
